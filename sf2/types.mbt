@@ -8,7 +8,7 @@ pub(all) suberror Sf2Error {
   InvalidChunkLength(
     name~ : String,
     expected_multiple~ : Int32,
-    actual~ : Int32
+    actual~ : Int32,
   )
   MissingSentinel(table~ : String)
   OutOfRangeIndex(table~ : String, index~ : Int32, limit~ : Int32)

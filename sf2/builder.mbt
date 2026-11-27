@@ -184,7 +184,7 @@ fn write_fixed_ascii(
 fn write_chunk(buf : @buffer.Buffer, id : String, payload : Bytes) -> Unit {
   buf.write_string_utf8(id)
   buf.write_uint_le(payload.length().reinterpret_as_uint())
-  buf.write_bytes(payload)
+  buf.write_bytesview(payload)
   if payload.length() % 2 == 1 {
     buf.write_byte(b'\x00')
   }
@@ -200,7 +200,7 @@ fn write_list(
   buf.write_string_utf8(list_id)
   buf.write_uint_le((inner.length() + 4).reinterpret_as_uint())
   buf.write_string_utf8(form_type)
-  buf.write_bytes(inner)
+  buf.write_bytesview(inner)
 }
 
 ///|
@@ -223,14 +223,14 @@ pub fn Sf2Builder::build(self : Sf2Builder) -> Bytes {
   write_chunk(info_buf, "IENG", ieng.to_bytes())
 
   // 2. LIST/sdta
-  let smpl_buf = @buffer.Buffer(size_hint=self.sample_data.length() * 2)
+  let smpl_buf = @buffer.Buffer(capacity=self.sample_data.length() * 2)
   for s in self.sample_data {
     smpl_buf.write_int16_le(Int16::from_int(s))
   }
   let sdta_buf = @buffer.Buffer()
   write_chunk(sdta_buf, "smpl", smpl_buf.to_bytes())
   if self.has_sm24 {
-    let sm24_buf = @buffer.Buffer(size_hint=self.sample_data_low8.length())
+    let sm24_buf = @buffer.Buffer(capacity=self.sample_data_low8.length())
     for lo in self.sample_data_low8 {
       sm24_buf.write_byte((lo & 0xFF).to_byte())
     }

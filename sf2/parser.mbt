@@ -178,12 +178,14 @@ fn require_chunk(
   parent : @riff.RiffChunk,
   name : String,
   record_size : Int32,
+  allow_zero~ : Bool = false,
 ) -> @riff.RiffChunk raise Sf2Error {
   let chunk = match parent.find_child(name) {
     Some(c) => c
     None => raise MissingChunk(name~)
   }
-  if chunk.data_size % record_size != 0 || chunk.data_size < record_size {
+  if chunk.data_size % record_size != 0 ||
+    (!allow_zero && chunk.data_size < record_size) {
     raise InvalidChunkLength(
       name~,
       expected_multiple=record_size,
@@ -198,15 +200,15 @@ fn parse_pdta(
   data : Bytes,
   pdta : @riff.RiffChunk,
 ) -> (Array[SampleHeader], Array[Instrument], Array[Preset]) raise Sf2Error {
-  let phdr_c = require_chunk(pdta, "phdr", 38)
+  let phdr_c = require_chunk(pdta, "phdr", 38, allow_zero=true)
   let pbag_c = require_chunk(pdta, "pbag", 4)
   let pmod_c = require_chunk(pdta, "pmod", 10)
   let pgen_c = require_chunk(pdta, "pgen", 4)
-  let inst_c = require_chunk(pdta, "inst", 22)
+  let inst_c = require_chunk(pdta, "inst", 22, allow_zero=true)
   let ibag_c = require_chunk(pdta, "ibag", 4)
   let imod_c = require_chunk(pdta, "imod", 10)
   let igen_c = require_chunk(pdta, "igen", 4)
-  let shdr_c = require_chunk(pdta, "shdr", 46)
+  let shdr_c = require_chunk(pdta, "shdr", 46, allow_zero=true)
 
   let shdr = parse_shdr(data, shdr_c)
   let pmod = parse_mods(data, pmod_c)

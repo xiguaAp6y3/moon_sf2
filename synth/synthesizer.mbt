@@ -475,7 +475,7 @@ pub fn encode_wav_pcm16(
   sample_rate : Int32,
 ) -> Bytes {
   let data_bytes = frame_count * 4
-  let buf = @buffer.Buffer(size_hint=44 + data_bytes)
+  let buf = @buffer.Buffer(capacity=44 + data_bytes)
   buf.write_string_utf8("RIFF")
   buf.write_uint_le((36 + data_bytes).reinterpret_as_uint())
   buf.write_string_utf8("WAVE")

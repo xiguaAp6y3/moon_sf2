@@ -337,19 +337,31 @@ fn Voice::fill_samples(
           let s2 = samples[idx2]
           self.block[t] = s1 + frac * (s2 - s1)
         }
-        Cubic => {
-          let rel = idx1 - self.loop_start
-          let idx0 = self.loop_start + (rel - 1 + loop_len_int) % loop_len_int
-          let idx2 = self.loop_start + (rel + 1) % loop_len_int
-          let idx3 = self.loop_start + (rel + 2) % loop_len_int
-          self.block[t] = catmull_rom(
-            samples[idx0],
-            samples[idx1],
-            samples[idx2],
-            samples[idx3],
-            frac,
-          )
-        }
+        Cubic =>
+          if idx1 < self.loop_start {
+            let idx0 = if idx1 > self.sample_start { idx1 - 1 } else { idx1 }
+            let idx2 = idx1 + 1
+            let idx3 = if idx1 + 2 < self.loop_end { idx1 + 2 } else { idx2 }
+            self.block[t] = catmull_rom(
+              samples[idx0],
+              samples[idx1],
+              samples[idx2],
+              samples[idx3],
+              frac,
+            )
+          } else {
+            let rel = idx1 - self.loop_start
+            let idx0 = self.loop_start + (rel - 1 + loop_len_int) % loop_len_int
+            let idx2 = self.loop_start + (rel + 1) % loop_len_int
+            let idx3 = self.loop_start + (rel + 2) % loop_len_int
+            self.block[t] = catmull_rom(
+              samples[idx0],
+              samples[idx1],
+              samples[idx2],
+              samples[idx3],
+              frac,
+            )
+          }
       }
       self.sample_pos = self.sample_pos + pitch_ratio
     } else {
