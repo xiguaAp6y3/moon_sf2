@@ -86,3 +86,76 @@ test "parse_sf2 rejects non-sfbk RIFF" {
     _ => fail("expected InvalidFormType")
   }
 }
+
+///|
+test "24-bit sm24 sample precision roundtrip and stereo link metadata" {
+  let builder = @sf2.Sf2Builder::new(bank_name="HiRes 24-bit Bank")
+  let pcm24 = [0, 4194304, 8388607, -8388608, 1234567, -7654321]
+  let idx_l = builder.add_sample_24bit(
+    "PianoL",
+    pcm24,
+    48000,
+    60,
+    sample_link=1,
+    sample_type=Left,
+  )
+  let idx_r = builder.add_sample_24bit(
+    "PianoR",
+    pcm24,
+    48000,
+    60,
+    sample_link=0,
+    sample_type=Right,
+  )
+  let inst = builder.add_instrument("StereoPiano", [
+    {
+      generators: [
+        @sf2.gen_range(@sf2.GEN_KEY_RANGE, 0, 127),
+        @sf2.gen_val(@sf2.GEN_PAN, -500),
+        @sf2.gen_val(@sf2.GEN_SAMPLE_ID, idx_l),
+      ],
+      modulators: [],
+    },
+    {
+      generators: [
+        @sf2.gen_range(@sf2.GEN_KEY_RANGE, 0, 127),
+        @sf2.gen_val(@sf2.GEN_PAN, 500),
+        @sf2.gen_val(@sf2.GEN_SAMPLE_ID, idx_r),
+      ],
+      modulators: [],
+    },
+  ])
+  builder.add_preset("Stereo Grand", 0, 0, [
+    {
+      generators: [
+        @sf2.gen_range(@sf2.GEN_KEY_RANGE, 0, 127),
+        @sf2.gen_val(@sf2.GEN_INSTRUMENT, inst),
+      ],
+      modulators: [],
+    },
+  ])
+  let sf = @sf2.parse_sf2(builder.build())
+  inspect(sf.sample_headers.length(), content="2")
+  debug_inspect(sf.sample_headers[0].sample_type, content="Left")
+  debug_inspect(sf.sample_headers[1].sample_type, content="Right")
+  let expected4 = 1234567.0 / 8388608.0
+  inspect((sf.samples[4] - expected4).abs() < 1.0e-12, content="true")
+  let expected5 = -7654321.0 / 8388608.0
+  inspect((sf.samples[5] - expected5).abs() < 1.0e-12, content="true")
+}
+
+///|
+test "parse_sf2 reports missing INFO or sdta chunks" {
+  let inner = @buffer.Buffer()
+  inner.write_string_utf8("sfbk")
+  let inner_b = inner.to_bytes()
+  let root = @buffer.Buffer()
+  root.write_string_utf8("RIFF")
+  root.write_uint_le(inner_b.length().reinterpret_as_uint())
+  root.write_bytes(inner_b)
+  try @sf2.parse_sf2(root.to_bytes()) catch {
+    err => inspect(err, content="Missing required chunk 'LIST/INFO'")
+  } noraise {
+    _ => fail("expected MissingChunk")
+  }
+}

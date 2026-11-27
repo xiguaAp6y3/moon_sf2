@@ -6,6 +6,8 @@ pub struct Sf2Builder {
   sound_engine : String
   author : String
   sample_data : Array[Int32]
+  sample_data_low8 : Array[Int32]
+  mut has_sm24 : Bool
   sample_headers : Array[SampleHeader]
   instruments : Array[Instrument]
   presets : Array[Preset]
@@ -18,6 +20,8 @@ pub fn Sf2Builder::new(bank_name~ : String = "MoonSF2 Bank") -> Sf2Builder {
     sound_engine: "EMU8000",
     author: "moon_sf2",
     sample_data: [],
+    sample_data_low8: [],
+    has_sm24: false,
     sample_headers: [],
     instruments: [],
     presets: [],
@@ -36,15 +40,19 @@ pub fn Sf2Builder::add_sample(
   loop_start~ : Int32 = 0,
   loop_end~ : Int32 = 0,
   pitch_correction~ : Int32 = 0,
+  sample_link~ : Int32 = 0,
+  sample_type~ : SampleType = Mono,
 ) -> Int32 {
   let start = self.sample_data.length()
   for s in pcm16 {
     self.sample_data.push(s)
+    self.sample_data_low8.push(0)
   }
   let end = self.sample_data.length()
   // SF2 spec §7.10 requires at least 46 zero-valued samples after each sample end.
   for _ in 0..<46 {
     self.sample_data.push(0)
+    self.sample_data_low8.push(0)
   }
   let eff_loop_start = start + loop_start
   let eff_loop_end = if loop_end > loop_start { start + loop_end } else { end }
@@ -58,8 +66,53 @@ pub fn Sf2Builder::add_sample(
     sample_rate,
     original_pitch,
     pitch_correction,
-    sample_link: 0,
-    sample_type: Mono,
+    sample_link,
+    sample_type,
+  })
+  idx
+}
+
+///|
+/// Append a mono 24-bit signed PCM waveform (`-8388608..=8388607`) stored across `smpl` + `sm24`.
+pub fn Sf2Builder::add_sample_24bit(
+  self : Sf2Builder,
+  name : String,
+  pcm24 : Array[Int32],
+  sample_rate : Int32,
+  original_pitch : Int32,
+  loop_start~ : Int32 = 0,
+  loop_end~ : Int32 = 0,
+  pitch_correction~ : Int32 = 0,
+  sample_link~ : Int32 = 0,
+  sample_type~ : SampleType = Mono,
+) -> Int32 {
+  self.has_sm24 = true
+  let start = self.sample_data.length()
+  for s in pcm24 {
+    let hi = s >> 8
+    let lo = s & 0xFF
+    self.sample_data.push(hi)
+    self.sample_data_low8.push(lo)
+  }
+  let end = self.sample_data.length()
+  for _ in 0..<46 {
+    self.sample_data.push(0)
+    self.sample_data_low8.push(0)
+  }
+  let eff_loop_start = start + loop_start
+  let eff_loop_end = if loop_end > loop_start { start + loop_end } else { end }
+  let idx = self.sample_headers.length()
+  self.sample_headers.push({
+    name,
+    start,
+    end,
+    start_loop: eff_loop_start,
+    end_loop: eff_loop_end,
+    sample_rate,
+    original_pitch,
+    pitch_correction,
+    sample_link,
+    sample_type,
   })
   idx
 }
@@ -176,6 +229,13 @@ pub fn Sf2Builder::build(self : Sf2Builder) -> Bytes {
   }
   let sdta_buf = @buffer.Buffer()
   write_chunk(sdta_buf, "smpl", smpl_buf.to_bytes())
+  if self.has_sm24 {
+    let sm24_buf = @buffer.Buffer(size_hint=self.sample_data_low8.length())
+    for lo in self.sample_data_low8 {
+      sm24_buf.write_byte((lo & 0xFF).to_byte())
+    }
+    write_chunk(sdta_buf, "sm24", sm24_buf.to_bytes())
+  }
 
   // 3. LIST/pdta
   let phdr_buf = @buffer.Buffer()

@@ -235,13 +235,16 @@ pub struct Sf2Builder {
   sound_engine : String
   author : String
   sample_data : Array[Int32]
+  sample_data_low8 : Array[Int32]
+  mut has_sm24 : Bool
   sample_headers : Array[SampleHeader]
   instruments : Array[Instrument]
   presets : Array[Preset]
 }
 pub fn Sf2Builder::add_instrument(Self, String, Array[Zone], global_zone? : Zone?) -> Int32
 pub fn Sf2Builder::add_preset(Self, String, Int32, Int32, Array[Zone], global_zone? : Zone?) -> Unit
-pub fn Sf2Builder::add_sample(Self, String, Array[Int32], Int32, Int32, loop_start? : Int32, loop_end? : Int32, pitch_correction? : Int32) -> Int32
+pub fn Sf2Builder::add_sample(Self, String, Array[Int32], Int32, Int32, loop_start? : Int32, loop_end? : Int32, pitch_correction? : Int32, sample_link? : Int32, sample_type? : SampleType) -> Int32
+pub fn Sf2Builder::add_sample_24bit(Self, String, Array[Int32], Int32, Int32, loop_start? : Int32, loop_end? : Int32, pitch_correction? : Int32, sample_link? : Int32, sample_type? : SampleType) -> Int32
 pub fn Sf2Builder::build(Self) -> Bytes
 pub fn Sf2Builder::new(bank_name? : String) -> Self
 
