@@ -254,7 +254,7 @@ pub fn ByteReader::read_bytes(
   count : Int32,
 ) -> Bytes raise RiffError {
   self.ensure(count)
-  let buf = @buffer.Buffer(size_hint=count)
+  let buf = @buffer.Buffer(capacity=count)
   for i in 0..<count {
     buf.write_byte(self.data[self.pos + i])
   }

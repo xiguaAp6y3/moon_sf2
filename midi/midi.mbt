@@ -45,7 +45,7 @@ pub(all) enum MidiMessageKind {
     channel~ : Int32,
     command~ : Int32,
     data1~ : Int32,
-    data2~ : Int32
+    data2~ : Int32,
   )
   Tempo(microseconds_per_quarter~ : Int32)
   EndOfTrack
@@ -519,7 +519,7 @@ pub fn MidiBuilder::build(self : MidiBuilder) -> Bytes {
   trk.write_byte(b'\x2F')
   trk.write_byte(b'\x00')
   let trk_bytes = trk.to_bytes()
-  let out = @buffer.Buffer(size_hint=22 + trk_bytes.length())
+  let out = @buffer.Buffer(capacity=22 + trk_bytes.length())
   out.write_string_utf8("MThd")
   out.write_uint_be(6U)
   out.write_uint16_be(0U.to_uint16())
@@ -527,6 +527,6 @@ pub fn MidiBuilder::build(self : MidiBuilder) -> Bytes {
   out.write_uint16_be(self.resolution.reinterpret_as_uint().to_uint16())
   out.write_string_utf8("MTrk")
   out.write_uint_be(trk_bytes.length().reinterpret_as_uint())
-  out.write_bytes(trk_bytes)
+  out.write_bytesview(trk_bytes)
   out.to_bytes()
 }

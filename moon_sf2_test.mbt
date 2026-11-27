@@ -45,4 +45,14 @@ test "end-to-end SF2 + MIDI rendering to valid RIFF/WAVE" {
   debug_inspect(riff.form_type, content="Some(\"WAVE\")")
   inspect(riff.find_child("fmt ") is Some(_), content="true")
   inspect(riff.find_child("data") is Some(_), content="true")
+
+  // Cover top-level parse_sf2, parse_midi, and encode_wav_pcm16 facades
+  let sf = @moon_sf2.parse_sf2(sf2_bytes)
+  let mf = @moon_sf2.parse_midi(midi_bytes)
+  inspect(sf.presets.length(), content="1")
+  inspect(mf.track_count, content="1")
+  let empty_l = FixedArray::make(8, 0.0)
+  let empty_r = FixedArray::make(8, 0.0)
+  let direct_wav = @moon_sf2.encode_wav_pcm16(empty_l, empty_r, 8, 22050)
+  inspect(direct_wav.length(), content="76")
 }
