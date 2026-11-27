@@ -71,6 +71,7 @@ pub struct Voice {
   mut sample_pos : Double
   mut voice_length : Int32
   minimum_voice_length : Int32
+  mut modulators : Array[@sf2.Modulator]
 }
 
 ///|
@@ -115,6 +116,7 @@ pub fn Voice::new(sample_rate : Int32, block_size : Int32) -> Voice {
     sample_pos: 0.0,
     voice_length: 0,
     minimum_voice_length: sample_rate / 500,
+    modulators: [],
   }
 }
 
@@ -196,6 +198,7 @@ pub fn Voice::start(
   self.loop_mode = region.sample_modes
   self.sample_pos = self.sample_start.to_double()
   self.voice_length = 0
+  self.modulators = region.modulators
 
   let key_offset = 60 - eff_key
   let vol_hold = timecents_to_seconds(
@@ -411,6 +414,7 @@ pub fn Voice::process(
   ignore(self.mod_env.process(count))
   self.mod_lfo.process(count)
   self.vib_lfo.process(count)
+  let mods = evaluate_modulators(self.modulators, ch, self.key, self.velocity)
 
   // Pitch calculation in semitones -> ratio
   let eff_key = self.key
@@ -421,9 +425,8 @@ pub fn Voice::process(
     ch.pitch_bend_semitones() * 100.0 +
     ch.tune_cents() +
     self.mod_env.value() * self.mod_env_to_pitch +
-    self.mod_lfo.value() * self.mod_lfo_to_pitch +
-    self.vib_lfo.value() *
-    (self.vib_lfo_to_pitch + ch.modulation_amount() * 50.0)
+    self.mod_lfo.value() * (self.mod_lfo_to_pitch + mods.mod_lfo_to_pitch_cents) +
+    self.vib_lfo.value() * (self.vib_lfo_to_pitch + mods.vib_lfo_to_pitch_cents)
   let pitch_ratio = cents_to_multiplying_factor(pitch_cents) *
     (self.sample_rate_src.to_double() / self.sample_rate.to_double())
 
@@ -434,8 +437,10 @@ pub fn Voice::process(
   // Dynamic resonant low-pass filter update
   let fc_cents = clamp(
     self.initial_filter_fc_cents +
+    mods.initial_filter_fc_cents +
     self.mod_env.value() * self.mod_env_to_filter_fc +
-    self.mod_lfo.value() * self.mod_lfo_to_filter_fc,
+    self.mod_lfo.value() *
+    (self.mod_lfo_to_filter_fc + mods.mod_lfo_to_filter_fc_cents),
     1500.0,
     13500.0,
   )
@@ -448,13 +453,21 @@ pub fn Voice::process(
   let mod_lfo_gain = centibels_to_gain(
     self.mod_lfo.value() * self.mod_lfo_to_volume,
   )
+  let mod_atten_gain = centibels_to_linear(
+    clamp(mods.initial_attenuation_cb, 0.0, 1440.0) * 0.4,
+  )
   let master_gain = self.note_gain *
+    mod_atten_gain *
     self.vol_env.value() *
     mod_lfo_gain *
     ch.volume_gain() *
     ch.expression_gain()
 
-  let total_pan = clamp(self.region_pan + ch.pan_position(), -1.0, 1.0)
+  let total_pan = clamp(
+    self.region_pan + mods.pan_tenths / 500.0 + ch.pan_position(),
+    -1.0,
+    1.0,
+  )
   let (pan_l, pan_r) = stereo_pan_gains(total_pan)
   let gain_l = master_gain * pan_l
   let gain_r = master_gain * pan_r

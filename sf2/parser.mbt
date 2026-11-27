@@ -597,6 +597,29 @@ fn min_int(a : Int32, b : Int32) -> Int32 {
 }
 
 ///|
+fn append_or_override_mods(
+  dst : Array[Modulator],
+  src : Array[Modulator],
+) -> Unit {
+  for m in src {
+    let mut replaced = false
+    for i in 0..<dst.length() {
+      let existing = dst[i]
+      if existing.src_oper == m.src_oper &&
+        existing.dest_oper == m.dest_oper &&
+        existing.amt_src_oper == m.amt_src_oper {
+        dst[i] = m
+        replaced = true
+        break
+      }
+    }
+    if !replaced {
+      dst.push(m)
+    }
+  }
+}
+
+///|
 /// Resolve all flattened `ZoneRegion` entries for a given `Preset`, applying
 /// global-zone inheritance, key/velocity range intersection, and additive preset offsets.
 pub fn SoundFont::resolve_preset_regions(
@@ -685,6 +708,17 @@ pub fn SoundFont::resolve_preset_regions(
             table[GEN_STARTLOOP_ADDRS_COARSE_OFFSET] * 32768
           let end_loop_offset = table[GEN_ENDLOOP_ADDRS_OFFSET] +
             table[GEN_ENDLOOP_ADDRS_COARSE_OFFSET] * 32768
+          let mods : Array[Modulator] = []
+          match inst.global_zone {
+            Some(igz) => append_or_override_mods(mods, igz.modulators)
+            None => ()
+          }
+          append_or_override_mods(mods, i_zone.modulators)
+          match preset.global_zone {
+            Some(pgz) => append_or_override_mods(mods, pgz.modulators)
+            None => ()
+          }
+          append_or_override_mods(mods, p_zone.modulators)
           regions.push({
             key_low,
             key_high,
@@ -735,6 +769,7 @@ pub fn SoundFont::resolve_preset_regions(
             scale_tuning: table[GEN_SCALE_TUNING],
             exclusive_class: table[GEN_EXCLUSIVE_CLASS],
             overriding_root_key: table[GEN_OVERRIDING_ROOT_KEY],
+            modulators: mods,
           })
         }
       }

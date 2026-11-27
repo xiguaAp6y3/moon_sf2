@@ -354,6 +354,7 @@ pub(all) struct ZoneRegion {
   scale_tuning : Int32
   exclusive_class : Int32
   overriding_root_key : Int32
+  modulators : Array[Modulator]
 }
 
 ///|

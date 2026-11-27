@@ -179,3 +179,30 @@ test "exclusive class chokes prior note and polyphony cap steals voices" {
   syn.note_on(0, 64, 100)
   inspect(syn.active_voice_count(), content="2")
 }
+
+///|
+test "SF2 modulator curves and real-time CC modulation" {
+  inspect(@synth.sf2_concave(0.0), content="0")
+  inspect(@synth.sf2_concave(1.0), content="1")
+  inspect(@synth.sf2_convex(0.0), content="0")
+  inspect(@synth.sf2_convex(1.0), content="1")
+  inspect(@synth.sf2_concave(0.5) < 0.5, content="true")
+  inspect(@synth.sf2_convex(0.5) > 0.5, content="true")
+
+  let ch = @synth.ChannelState::new(false)
+  ch.set_modulation_coarse(127)
+  // Custom modulator: NoteOnVelocity (src=2) -> InitialFilterFc (dest=8), amount=-2400
+  let custom_mod : @sf2.Modulator = {
+    src_oper: 0x0102, // NoteOnVelocity, negative direction, linear unipolar
+    dest_oper: 8,
+    amount: -2400,
+    amt_src_oper: 0,
+    trans_oper: 0,
+  }
+  let offsets = @synth.evaluate_modulators([custom_mod], ch, 60, 0)
+  inspect(
+    (offsets.initial_filter_fc_cents - -2400.0).abs() < 1.0e-6,
+    content="true",
+  )
+  inspect(offsets.vib_lfo_to_pitch_cents > 49.0, content="true")
+}

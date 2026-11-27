@@ -16,6 +16,7 @@ pub struct ChannelState {
   mut coarse_tune : Int32
   mut fine_tune : Int32
   mut pitch_bend : Double
+  mut channel_pressure : Int32
 }
 
 ///|
@@ -40,6 +41,7 @@ pub fn ChannelState::new(is_percussion : Bool) -> ChannelState {
     coarse_tune: 0,
     fine_tune: 8192,
     pitch_bend: 0.0,
+    channel_pressure: 0,
   }
   ch
 }
@@ -65,6 +67,7 @@ pub fn ChannelState::reset_all_controllers(self : ChannelState) -> Unit {
   self.coarse_tune = 0
   self.fine_tune = 8192
   self.pitch_bend = 0.0
+  self.channel_pressure = 0
 }
 
 ///|

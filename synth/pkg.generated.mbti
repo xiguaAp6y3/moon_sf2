@@ -21,7 +21,13 @@ pub fn clamp_int(Int32, Int32, Int32) -> Int32
 
 pub fn encode_wav_pcm16(FixedArray[Double], FixedArray[Double], Int32, Int32) -> Bytes
 
+pub fn evaluate_modulators(Array[@sf2.Modulator], ChannelState, Int32, Int32) -> ModulatorOffsets
+
 pub fn midi_note_to_hertz(Double) -> Double
+
+pub fn sf2_concave(Double) -> Double
+
+pub fn sf2_convex(Double) -> Double
 
 pub fn stereo_pan_gains(Double) -> (Double, Double)
 
@@ -70,6 +76,7 @@ pub struct ChannelState {
   mut coarse_tune : Int32
   mut fine_tune : Int32
   mut pitch_bend : Double
+  mut channel_pressure : Int32
 }
 pub fn ChannelState::data_entry_coarse(Self, Int32) -> Unit
 pub fn ChannelState::data_entry_fine(Self, Int32) -> Unit
@@ -178,6 +185,19 @@ pub fn ModulationEnvelope::release(Self) -> Unit
 pub fn ModulationEnvelope::start(Self, Double, Double, Double, Double, Double, Double) -> Unit
 pub fn ModulationEnvelope::value(Self) -> Double
 
+pub(all) struct ModulatorOffsets {
+  mut initial_filter_fc_cents : Double
+  mut initial_filter_q_cb : Double
+  mut vib_lfo_to_pitch_cents : Double
+  mut mod_lfo_to_pitch_cents : Double
+  mut mod_lfo_to_filter_fc_cents : Double
+  mut initial_attenuation_cb : Double
+  mut pan_tenths : Double
+  mut reverb_send_tenths : Double
+  mut chorus_send_tenths : Double
+}
+pub fn ModulatorOffsets::zero() -> Self
+
 pub struct Reverb {
   combs_l : Array[CombFilter]
   combs_r : Array[CombFilter]
@@ -275,6 +295,7 @@ pub struct Voice {
   mut sample_pos : Double
   mut voice_length : Int32
   minimum_voice_length : Int32
+  mut modulators : Array[@sf2.Modulator]
 }
 pub fn Voice::end_note(Self, Bool) -> Unit
 pub fn Voice::kill(Self) -> Unit

@@ -304,6 +304,7 @@ pub fn Synthesizer::process_midi_message(
         _ => ()
       }
     0xC0 => ch.set_patch(data1)
+    0xD0 => ch.channel_pressure = clamp_int(data1, 0, 127)
     0xE0 => ch.set_pitch_bend(data1, data2)
     _ => ()
   }
