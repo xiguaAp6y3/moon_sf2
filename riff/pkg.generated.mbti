@@ -1,0 +1,67 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "xiguaAp6y3/moon_sf2/riff"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn parse_riff(Bytes) -> RiffChunk raise RiffError
+
+// Errors
+#derive(Eq, @debug.Debug)
+pub(all) suberror RiffError {
+  UnexpectedEof(offset~ : Int32, needed~ : Int32, available~ : Int32)
+  InvalidMagic(expected~ : String, actual~ : String, offset~ : Int32)
+  InvalidChunkSize(id~ : String, size~ : Int32, remaining~ : Int32)
+}
+pub fn RiffError::equal(Self, Self) -> Bool
+pub fn RiffError::not_equal(Self, Self) -> Bool
+pub fn RiffError::output(Self, &Logger) -> Unit
+pub fn RiffError::to_repr(Self) -> @debug.Repr
+pub fn RiffError::to_string(Self) -> String
+pub impl Show for RiffError
+
+// Types and methods
+pub struct ByteReader {
+  data : Bytes
+  mut pos : Int32
+}
+pub fn ByteReader::at(Bytes, Int32) -> Self
+pub fn ByteReader::length(Self) -> Int32
+pub fn ByteReader::new(Bytes) -> Self
+pub fn ByteReader::position(Self) -> Int32
+pub fn ByteReader::read_ascii_trimmed(Self, Int32) -> String raise RiffError
+pub fn ByteReader::read_ascii_z(Self, Int32) -> String raise RiffError
+pub fn ByteReader::read_bytes(Self, Int32) -> Bytes raise RiffError
+pub fn ByteReader::read_fourcc(Self) -> String raise RiffError
+pub fn ByteReader::read_i16_le(Self) -> Int32 raise RiffError
+pub fn ByteReader::read_i32_le(Self) -> Int32 raise RiffError
+pub fn ByteReader::read_i8(Self) -> Int32 raise RiffError
+pub fn ByteReader::read_u16_be(Self) -> Int32 raise RiffError
+pub fn ByteReader::read_u16_le(Self) -> Int32 raise RiffError
+pub fn ByteReader::read_u32_be(Self) -> UInt32 raise RiffError
+pub fn ByteReader::read_u32_le(Self) -> UInt32 raise RiffError
+pub fn ByteReader::read_u8(Self) -> Int32 raise RiffError
+pub fn ByteReader::remaining(Self) -> Int32
+pub fn ByteReader::seek(Self, Int32) -> Unit raise RiffError
+pub fn ByteReader::skip(Self, Int32) -> Unit raise RiffError
+
+#derive(Eq, @debug.Debug)
+pub(all) struct RiffChunk {
+  id : String
+  form_type : String?
+  data_offset : Int32
+  data_size : Int32
+  children : Array[RiffChunk]
+}
+pub fn RiffChunk::equal(Self, Self) -> Bool
+pub fn RiffChunk::find_child(Self, String) -> Self?
+pub fn RiffChunk::find_list(Self, String) -> Self?
+pub fn RiffChunk::not_equal(Self, Self) -> Bool
+pub fn RiffChunk::payload_bytes(Self, Bytes) -> Bytes raise RiffError
+pub fn RiffChunk::to_repr(Self) -> @debug.Repr
+
+// Type aliases
+
+// Traits
