@@ -31,7 +31,9 @@ pub struct MidiBuilder {
   resolution : Int32
   events : Array[TimedMidiEvent]
 }
+pub fn MidiBuilder::add_control_change(Self, Int32, Int32, Int32, Int32) -> Unit
 pub fn MidiBuilder::add_note(Self, Int32, Int32, Int32, Int32, Int32) -> Unit
+pub fn MidiBuilder::add_pitch_bend(Self, Int32, Int32, Int32) -> Unit
 pub fn MidiBuilder::add_program_change(Self, Int32, Int32, Int32) -> Unit
 pub fn MidiBuilder::add_tempo(Self, Int32, Int32) -> Unit
 pub fn MidiBuilder::build(Self) -> Bytes

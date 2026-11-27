@@ -246,12 +246,15 @@ pub struct Synthesizer {
   mut block_read_index : Int32
 }
 pub fn Synthesizer::active_voice_count(Self) -> Int32
+pub fn Synthesizer::channel_preset_name(Self, Int32) -> String?
 pub fn Synthesizer::new(@sf2.SoundFont, settings? : SynthSettings) -> Self
 pub fn Synthesizer::note_off(Self, Int32, Int32) -> Unit
 pub fn Synthesizer::note_off_all(Self, immediate? : Bool) -> Unit
 pub fn Synthesizer::note_on(Self, Int32, Int32, Int32) -> Unit
 pub fn Synthesizer::process_midi_message(Self, Int32, Int32, Int32, Int32) -> Unit
 pub fn Synthesizer::render(Self, FixedArray[Double], FixedArray[Double], Int32) -> Unit
+pub fn Synthesizer::render_interleaved_f32(Self, Int32) -> FixedArray[Float]
+pub fn Synthesizer::render_interleaved_i16(Self, Int32) -> FixedArray[Int16]
 pub fn Synthesizer::reset(Self) -> Unit
 pub fn Synthesizer::sample_rate(Self) -> Int32
 

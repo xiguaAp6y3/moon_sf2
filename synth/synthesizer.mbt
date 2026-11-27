@@ -400,6 +400,73 @@ pub fn Synthesizer::render(
 }
 
 ///|
+/// Render `frame_count` stereo frames as interleaved `Int16` samples (`[L0, R0, L1, R1, ...]`).
+pub fn Synthesizer::render_interleaved_i16(
+  self : Synthesizer,
+  frame_count : Int32,
+) -> FixedArray[Int16] {
+  let n = if frame_count < 0 { 0 } else { frame_count }
+  let left = FixedArray::make(n, 0.0)
+  let right = FixedArray::make(n, 0.0)
+  self.render(left, right, n)
+  let out = FixedArray::make(n * 2, Int16::from_int(0))
+  for i in 0..<n {
+    let il = clamp_int(
+      (clamp(left[i], -1.0, 1.0) * 32767.0).to_int(),
+      -32768,
+      32767,
+    )
+    let ir = clamp_int(
+      (clamp(right[i], -1.0, 1.0) * 32767.0).to_int(),
+      -32768,
+      32767,
+    )
+    out[i * 2] = Int16::from_int(il)
+    out[i * 2 + 1] = Int16::from_int(ir)
+  }
+  out
+}
+
+///|
+/// Render `frame_count` stereo frames as interleaved 32-bit `Float` samples (`[L0, R0, ...]`).
+pub fn Synthesizer::render_interleaved_f32(
+  self : Synthesizer,
+  frame_count : Int32,
+) -> FixedArray[Float] {
+  let n = if frame_count < 0 { 0 } else { frame_count }
+  let left = FixedArray::make(n, 0.0)
+  let right = FixedArray::make(n, 0.0)
+  self.render(left, right, n)
+  let out = FixedArray::make(n * 2, Float::from_double(0.0))
+  for i in 0..<n {
+    out[i * 2] = Float::from_double(left[i])
+    out[i * 2 + 1] = Float::from_double(right[i])
+  }
+  out
+}
+
+///|
+/// Return the currently selected preset name on `channel` (`0..=15`), if matched in the bank.
+pub fn Synthesizer::channel_preset_name(
+  self : Synthesizer,
+  channel : Int32,
+) -> String? {
+  if channel < 0 || channel >= 16 {
+    return None
+  }
+  let ch = self.channels[channel]
+  match
+    self.sound_font.find_preset(
+      ch.bank_number,
+      ch.patch_number,
+      fallback_bank0=true,
+    ) {
+    Some(p) => Some(p.name)
+    None => None
+  }
+}
+
+///|
 /// Encode stereo `Double` (`-1.0..=1.0`) buffers into a standard 16-bit PCM RIFF/WAV byte stream.
 pub fn encode_wav_pcm16(
   left : FixedArray[Double],

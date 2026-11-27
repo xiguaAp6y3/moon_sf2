@@ -406,6 +406,45 @@ pub fn MidiBuilder::add_program_change(
 }
 
 ///|
+pub fn MidiBuilder::add_control_change(
+  self : MidiBuilder,
+  tick : Int32,
+  channel : Int32,
+  controller : Int32,
+  value : Int32,
+) -> Unit {
+  self.events.push({
+    tick,
+    kind: ChannelEvent(channel~, command=0xB0, data1=controller, data2=value),
+  })
+}
+
+///|
+pub fn MidiBuilder::add_pitch_bend(
+  self : MidiBuilder,
+  tick : Int32,
+  channel : Int32,
+  value_14bit : Int32,
+) -> Unit {
+  let clamped = if value_14bit < 0 {
+    0
+  } else if value_14bit > 16383 {
+    16383
+  } else {
+    value_14bit
+  }
+  self.events.push({
+    tick,
+    kind: ChannelEvent(
+      channel~,
+      command=0xE0,
+      data1=clamped & 0x7F,
+      data2=(clamped >> 7) & 0x7F,
+    ),
+  })
+}
+
+///|
 pub fn MidiBuilder::add_note(
   self : MidiBuilder,
   tick : Int32,

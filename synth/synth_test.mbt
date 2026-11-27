@@ -206,3 +206,35 @@ test "SF2 modulator curves and real-time CC modulation" {
   )
   inspect(offsets.vib_lfo_to_pitch_cents > 49.0, content="true")
 }
+
+///|
+test "channel preset lookup, stereo pan energy, and interleaved PCM export" {
+  let sf = build_sine_sf2()
+  let settings : @synth.SynthSettings = {
+    sample_rate: 44100,
+    block_size: 64,
+    maximum_polyphony: 16,
+    enable_reverb_and_chorus: false,
+    master_volume: 0.5,
+    interpolation: Cubic,
+  }
+  let syn = @synth.Synthesizer::new(sf, settings~)
+  debug_inspect(syn.channel_preset_name(0), content="Some(\"Sine Preset\")")
+  // Hard-left pan via CC#10 = 0
+  syn.process_midi_message(0, 0xB0, 10, 0)
+  syn.note_on(0, 69, 127)
+  let pcm_f32 = syn.render_interleaved_f32(512)
+  inspect(pcm_f32.length(), content="1024")
+  let mut left_energy = 0.0
+  let mut right_energy = 0.0
+  for i in 0..<512 {
+    let l = pcm_f32[i * 2].to_double()
+    let r = pcm_f32[i * 2 + 1].to_double()
+    left_energy += l * l
+    right_energy += r * r
+  }
+  inspect(left_energy > 0.1, content="true")
+  inspect(right_energy < 1.0e-6, content="true")
+  let pcm_i16 = syn.render_interleaved_i16(128)
+  inspect(pcm_i16.length(), content="256")
+}

@@ -86,3 +86,17 @@ test "parse_midi handles running status" {
     ),
   )
 }
+
+///|
+test "MidiBuilder CC/PitchBend and mid-song tempo change duration" {
+  let mb = @midi.MidiBuilder::new(resolution=480)
+  mb.add_tempo(0, 120) // 0..480 ticks = 0.5 s
+  mb.add_control_change(0, 0, 10, 0) // hard left pan
+  mb.add_pitch_bend(0, 0, 8192)
+  mb.add_note(0, 480, 0, 60, 100)
+  mb.add_tempo(480, 60) // 480..960 ticks = 1.0 s
+  mb.add_note(480, 480, 0, 64, 100)
+  let mf = @midi.parse_midi(mb.build())
+  // Total = 0.5 + 1.0 = 1.5 s
+  inspect((mf.duration_seconds - 1.5).abs() < 1.0e-6, content="true")
+}
