@@ -1,0 +1,314 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "xiguaAp6y3/moon_sf2/synth"
+
+import {
+  "moonbitlang/core/debug",
+  "xiguaAp6y3/moon_sf2/sf2",
+}
+
+// Values
+pub fn centibels_to_gain(Double) -> Double
+
+pub fn centibels_to_linear(Double) -> Double
+
+pub fn cents_to_hertz(Double) -> Double
+
+pub fn cents_to_multiplying_factor(Double) -> Double
+
+pub fn clamp(Double, Double, Double) -> Double
+
+pub fn clamp_int(Int32, Int32, Int32) -> Int32
+
+pub fn encode_wav_pcm16(FixedArray[Double], FixedArray[Double], Int32, Int32) -> Bytes
+
+pub fn midi_note_to_hertz(Double) -> Double
+
+pub fn stereo_pan_gains(Double) -> (Double, Double)
+
+pub fn timecents_to_seconds(Double) -> Double
+
+// Errors
+
+// Types and methods
+pub struct AllPassFilter {
+  buffer : FixedArray[Double]
+  mut buffer_index : Int32
+  feedback : Double
+}
+
+pub struct BiQuadFilter {
+  sample_rate : Int32
+  mut active : Bool
+  mut a0 : Double
+  mut a1 : Double
+  mut a2 : Double
+  mut a3 : Double
+  mut a4 : Double
+  mut x1 : Double
+  mut x2 : Double
+  mut y1 : Double
+  mut y2 : Double
+}
+pub fn BiQuadFilter::clear_buffer(Self) -> Unit
+pub fn BiQuadFilter::new(Int32) -> Self
+pub fn BiQuadFilter::process(Self, FixedArray[Double], Int32) -> Unit
+pub fn BiQuadFilter::set_low_pass_filter(Self, Double, Double) -> Unit
+
+pub struct ChannelState {
+  is_percussion : Bool
+  mut bank_number : Int32
+  mut patch_number : Int32
+  mut modulation : Int32
+  mut volume : Int32
+  mut pan : Int32
+  mut expression : Int32
+  mut hold_pedal : Bool
+  mut reverb_send : Int32
+  mut chorus_send : Int32
+  mut rpn : Int32
+  mut pitch_bend_range : Int32
+  mut coarse_tune : Int32
+  mut fine_tune : Int32
+  mut pitch_bend : Double
+}
+pub fn ChannelState::data_entry_coarse(Self, Int32) -> Unit
+pub fn ChannelState::data_entry_fine(Self, Int32) -> Unit
+pub fn ChannelState::expression_gain(Self) -> Double
+pub fn ChannelState::modulation_amount(Self) -> Double
+pub fn ChannelState::new(Bool) -> Self
+pub fn ChannelState::pan_position(Self) -> Double
+pub fn ChannelState::pitch_bend_semitones(Self) -> Double
+pub fn ChannelState::reset(Self) -> Unit
+pub fn ChannelState::reset_all_controllers(Self) -> Unit
+pub fn ChannelState::set_bank(Self, Int32) -> Unit
+pub fn ChannelState::set_chorus_send(Self, Int32) -> Unit
+pub fn ChannelState::set_expression_coarse(Self, Int32) -> Unit
+pub fn ChannelState::set_expression_fine(Self, Int32) -> Unit
+pub fn ChannelState::set_hold_pedal(Self, Int32) -> Unit
+pub fn ChannelState::set_modulation_coarse(Self, Int32) -> Unit
+pub fn ChannelState::set_modulation_fine(Self, Int32) -> Unit
+pub fn ChannelState::set_pan_coarse(Self, Int32) -> Unit
+pub fn ChannelState::set_pan_fine(Self, Int32) -> Unit
+pub fn ChannelState::set_patch(Self, Int32) -> Unit
+pub fn ChannelState::set_pitch_bend(Self, Int32, Int32) -> Unit
+pub fn ChannelState::set_reverb_send(Self, Int32) -> Unit
+pub fn ChannelState::set_rpn_coarse(Self, Int32) -> Unit
+pub fn ChannelState::set_rpn_fine(Self, Int32) -> Unit
+pub fn ChannelState::set_volume_coarse(Self, Int32) -> Unit
+pub fn ChannelState::set_volume_fine(Self, Int32) -> Unit
+pub fn ChannelState::tune_cents(Self) -> Double
+pub fn ChannelState::volume_gain(Self) -> Double
+
+pub struct Chorus {
+  buf_l : FixedArray[Double]
+  buf_r : FixedArray[Double]
+  mut buf_index : Int32
+  delay_table : FixedArray[Double]
+  mut delay_index_l : Int32
+  mut delay_index_r : Int32
+}
+pub fn Chorus::mute(Self) -> Unit
+pub fn Chorus::new(Int32, delay_sec? : Double, depth_sec? : Double, frequency_hz? : Double) -> Self
+pub fn Chorus::process(Self, FixedArray[Double], FixedArray[Double], FixedArray[Double], FixedArray[Double], Int32) -> Unit
+
+pub struct CombFilter {
+  buffer : FixedArray[Double]
+  mut buffer_index : Int32
+  mut filter_store : Double
+  feedback : Double
+  damp1 : Double
+  damp2 : Double
+}
+
+#derive(Eq, @debug.Debug)
+pub(all) enum EnvelopeStage {
+  Delay
+  Attack
+  Hold
+  Decay
+  Sustain
+  Release
+  Finished
+}
+pub fn EnvelopeStage::equal(Self, Self) -> Bool
+pub fn EnvelopeStage::not_equal(Self, Self) -> Bool
+pub fn EnvelopeStage::to_repr(Self) -> @debug.Repr
+
+pub struct Lfo {
+  sample_rate : Int32
+  mut active : Bool
+  mut delay : Double
+  mut period : Double
+  mut processed_samples : Int32
+  mut value : Double
+}
+pub fn Lfo::new(Int32) -> Self
+pub fn Lfo::process(Self, Int32) -> Unit
+pub fn Lfo::start(Self, Double, Double) -> Unit
+pub fn Lfo::value(Self) -> Double
+
+pub struct ModulationEnvelope {
+  sample_rate : Int32
+  mut attack_slope : Double
+  mut decay_slope : Double
+  mut release_slope : Double
+  mut attack_start_time : Double
+  mut hold_start_time : Double
+  mut decay_start_time : Double
+  mut decay_end_time : Double
+  mut sustain_level : Double
+  mut release_end_time : Double
+  mut release_level : Double
+  mut processed_samples : Int32
+  mut stage : EnvelopeStage
+  mut value : Double
+}
+pub fn ModulationEnvelope::new(Int32) -> Self
+pub fn ModulationEnvelope::process(Self, Int32) -> Bool
+pub fn ModulationEnvelope::release(Self) -> Unit
+pub fn ModulationEnvelope::start(Self, Double, Double, Double, Double, Double, Double) -> Unit
+pub fn ModulationEnvelope::value(Self) -> Double
+
+pub struct Reverb {
+  combs_l : Array[CombFilter]
+  combs_r : Array[CombFilter]
+  allpasses_l : Array[AllPassFilter]
+  allpasses_r : Array[AllPassFilter]
+  input_buf : FixedArray[Double]
+  wet1 : Double
+  wet2 : Double
+}
+pub fn Reverb::mute(Self) -> Unit
+pub fn Reverb::new(Int32, Int32) -> Self
+pub fn Reverb::process(Self, FixedArray[Double], FixedArray[Double], FixedArray[Double], FixedArray[Double], Int32) -> Unit
+
+#derive(Eq, @debug.Debug)
+pub(all) struct SynthSettings {
+  sample_rate : Int32
+  block_size : Int32
+  maximum_polyphony : Int32
+  enable_reverb_and_chorus : Bool
+  master_volume : Double
+}
+pub fn SynthSettings::default(sample_rate? : Int32) -> Self
+pub fn SynthSettings::equal(Self, Self) -> Bool
+pub fn SynthSettings::not_equal(Self, Self) -> Bool
+pub fn SynthSettings::to_repr(Self) -> @debug.Repr
+
+pub struct Synthesizer {
+  sound_font : @sf2.SoundFont
+  settings : SynthSettings
+  channels : Array[ChannelState]
+  voices : Array[Voice]
+  preset_cache : Map[Int32, Array[@sf2.ZoneRegion]]
+  block_left : FixedArray[Double]
+  block_right : FixedArray[Double]
+  rev_in_l : FixedArray[Double]
+  rev_in_r : FixedArray[Double]
+  rev_out_l : FixedArray[Double]
+  rev_out_r : FixedArray[Double]
+  cho_in_l : FixedArray[Double]
+  cho_in_r : FixedArray[Double]
+  cho_out_l : FixedArray[Double]
+  cho_out_r : FixedArray[Double]
+  reverb : Reverb
+  chorus : Chorus
+  mut block_read_index : Int32
+}
+pub fn Synthesizer::active_voice_count(Self) -> Int32
+pub fn Synthesizer::new(@sf2.SoundFont, settings? : SynthSettings) -> Self
+pub fn Synthesizer::note_off(Self, Int32, Int32) -> Unit
+pub fn Synthesizer::note_off_all(Self, immediate? : Bool) -> Unit
+pub fn Synthesizer::note_on(Self, Int32, Int32, Int32) -> Unit
+pub fn Synthesizer::process_midi_message(Self, Int32, Int32, Int32, Int32) -> Unit
+pub fn Synthesizer::render(Self, FixedArray[Double], FixedArray[Double], Int32) -> Unit
+pub fn Synthesizer::reset(Self) -> Unit
+pub fn Synthesizer::sample_rate(Self) -> Int32
+
+pub struct Voice {
+  sample_rate : Int32
+  block_size : Int32
+  vol_env : VolumeEnvelope
+  mod_env : ModulationEnvelope
+  mod_lfo : Lfo
+  vib_lfo : Lfo
+  filter : BiQuadFilter
+  block : FixedArray[Double]
+  mut channel : Int32
+  mut key : Int32
+  mut velocity : Int32
+  mut exclusive_class : Int32
+  mut state : VoiceState
+  mut note_gain : Double
+  mut region_pan : Double
+  mut region_reverb : Double
+  mut region_chorus : Double
+  mut initial_filter_fc_cents : Double
+  mut filter_q_linear : Double
+  mut mod_lfo_to_pitch : Double
+  mut vib_lfo_to_pitch : Double
+  mut mod_env_to_pitch : Double
+  mut mod_lfo_to_filter_fc : Double
+  mut mod_env_to_filter_fc : Double
+  mut mod_lfo_to_volume : Double
+  mut scale_tuning : Double
+  mut root_key : Int32
+  mut coarse_tune : Int32
+  mut fine_tune : Int32
+  mut pitch_correction : Int32
+  mut sample_rate_src : Int32
+  mut sample_start : Int32
+  mut sample_end : Int32
+  mut loop_start : Int32
+  mut loop_end : Int32
+  mut loop_mode : @sf2.LoopMode
+  mut sample_pos : Double
+  mut voice_length : Int32
+  minimum_voice_length : Int32
+}
+pub fn Voice::end_note(Self, Bool) -> Unit
+pub fn Voice::kill(Self) -> Unit
+pub fn Voice::new(Int32, Int32) -> Self
+pub fn Voice::priority(Self) -> Double
+pub fn Voice::process(Self, FixedArray[Double], ChannelState, FixedArray[Double], FixedArray[Double], FixedArray[Double], FixedArray[Double], FixedArray[Double], FixedArray[Double], Int32, Bool) -> Bool
+pub fn Voice::release_hold(Self) -> Unit
+pub fn Voice::start(Self, FixedArray[Double], Array[@sf2.SampleHeader], @sf2.ZoneRegion, Int32, Int32, Int32) -> Unit
+
+#derive(Eq, @debug.Debug)
+pub(all) enum VoiceState {
+  Playing
+  HoldRequested
+  Released
+  Finished
+}
+pub fn VoiceState::equal(Self, Self) -> Bool
+pub fn VoiceState::not_equal(Self, Self) -> Bool
+pub fn VoiceState::to_repr(Self) -> @debug.Repr
+
+pub struct VolumeEnvelope {
+  sample_rate : Int32
+  mut attack_slope : Double
+  mut decay_slope : Double
+  mut release_slope : Double
+  mut attack_start_time : Double
+  mut hold_start_time : Double
+  mut decay_start_time : Double
+  mut sustain_level : Double
+  mut release_start_time : Double
+  mut release_level : Double
+  mut processed_samples : Int32
+  mut stage : EnvelopeStage
+  mut value : Double
+  mut priority : Double
+}
+pub fn VolumeEnvelope::new(Int32) -> Self
+pub fn VolumeEnvelope::priority(Self) -> Double
+pub fn VolumeEnvelope::process(Self, Int32) -> Bool
+pub fn VolumeEnvelope::release(Self) -> Unit
+pub fn VolumeEnvelope::stage(Self) -> EnvelopeStage
+pub fn VolumeEnvelope::start(Self, Double, Double, Double, Double, Double, Double) -> Unit
+pub fn VolumeEnvelope::value(Self) -> Double
+
+// Type aliases
+
+// Traits
