@@ -1,0 +1,354 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "xiguaAp6y3/moon_sf2/sf2"
+
+import {
+  "moonbitlang/core/debug",
+  "xiguaAp6y3/moon_sf2/riff",
+}
+
+// Values
+pub const GEN_ATTACK_MOD_ENV : Int32 = 26
+
+pub const GEN_ATTACK_VOL_ENV : Int32 = 34
+
+pub const GEN_CHORUS_EFFECTS_SEND : Int32 = 15
+
+pub const GEN_COARSE_TUNE : Int32 = 51
+
+pub const GEN_DECAY_MOD_ENV : Int32 = 28
+
+pub const GEN_DECAY_VOL_ENV : Int32 = 36
+
+pub const GEN_DELAY_MOD_ENV : Int32 = 25
+
+pub const GEN_DELAY_MOD_LFO : Int32 = 21
+
+pub const GEN_DELAY_VIB_LFO : Int32 = 23
+
+pub const GEN_DELAY_VOL_ENV : Int32 = 33
+
+pub const GEN_ENDLOOP_ADDRS_COARSE_OFFSET : Int32 = 50
+
+pub const GEN_ENDLOOP_ADDRS_OFFSET : Int32 = 3
+
+pub const GEN_END_ADDRS_COARSE_OFFSET : Int32 = 12
+
+pub const GEN_END_ADDRS_OFFSET : Int32 = 1
+
+pub const GEN_EXCLUSIVE_CLASS : Int32 = 57
+
+pub const GEN_FINE_TUNE : Int32 = 52
+
+pub const GEN_FREQ_MOD_LFO : Int32 = 22
+
+pub const GEN_FREQ_VIB_LFO : Int32 = 24
+
+pub const GEN_HOLD_MOD_ENV : Int32 = 27
+
+pub const GEN_HOLD_VOL_ENV : Int32 = 35
+
+pub const GEN_INITIAL_ATTENUATION : Int32 = 48
+
+pub const GEN_INITIAL_FILTER_FC : Int32 = 8
+
+pub const GEN_INITIAL_FILTER_Q : Int32 = 9
+
+pub const GEN_INSTRUMENT : Int32 = 41
+
+pub const GEN_KEYNUM : Int32 = 46
+
+pub const GEN_KEYNUM_TO_MOD_ENV_DECAY : Int32 = 32
+
+pub const GEN_KEYNUM_TO_MOD_ENV_HOLD : Int32 = 31
+
+pub const GEN_KEYNUM_TO_VOL_ENV_DECAY : Int32 = 40
+
+pub const GEN_KEYNUM_TO_VOL_ENV_HOLD : Int32 = 39
+
+pub const GEN_KEY_RANGE : Int32 = 43
+
+pub const GEN_MOD_ENV_TO_FILTER_FC : Int32 = 11
+
+pub const GEN_MOD_ENV_TO_PITCH : Int32 = 7
+
+pub const GEN_MOD_LFO_TO_FILTER_FC : Int32 = 10
+
+pub const GEN_MOD_LFO_TO_PITCH : Int32 = 5
+
+pub const GEN_MOD_LFO_TO_VOLUME : Int32 = 13
+
+pub const GEN_OVERRIDING_ROOT_KEY : Int32 = 58
+
+pub const GEN_PAN : Int32 = 17
+
+pub const GEN_RELEASE_MOD_ENV : Int32 = 30
+
+pub const GEN_RELEASE_VOL_ENV : Int32 = 38
+
+pub const GEN_REVERB_EFFECTS_SEND : Int32 = 16
+
+pub const GEN_SAMPLE_ID : Int32 = 53
+
+pub const GEN_SAMPLE_MODES : Int32 = 54
+
+pub const GEN_SCALE_TUNING : Int32 = 56
+
+pub const GEN_STARTLOOP_ADDRS_COARSE_OFFSET : Int32 = 45
+
+pub const GEN_STARTLOOP_ADDRS_OFFSET : Int32 = 2
+
+pub const GEN_START_ADDRS_COARSE_OFFSET : Int32 = 4
+
+pub const GEN_START_ADDRS_OFFSET : Int32 = 0
+
+pub const GEN_SUSTAIN_MOD_ENV : Int32 = 29
+
+pub const GEN_SUSTAIN_VOL_ENV : Int32 = 37
+
+pub const GEN_VELOCITY : Int32 = 47
+
+pub const GEN_VEL_RANGE : Int32 = 44
+
+pub const GEN_VIB_LFO_TO_PITCH : Int32 = 6
+
+pub fn gen_range(Int32, Int32, Int32) -> RawGenerator
+
+pub fn gen_val(Int32, Int32) -> RawGenerator
+
+pub fn parse_sf2(Bytes) -> SoundFont raise Sf2Error
+
+// Errors
+#derive(Eq, @debug.Debug)
+pub(all) suberror Sf2Error {
+  Riff(err~ : @riff.RiffError)
+  InvalidFormType(expected~ : String, actual~ : String)
+  MissingChunk(name~ : String)
+  InvalidChunkLength(name~ : String, expected_multiple~ : Int32, actual~ : Int32)
+  MissingSentinel(table~ : String)
+  OutOfRangeIndex(table~ : String, index~ : Int32, limit~ : Int32)
+}
+pub fn Sf2Error::equal(Self, Self) -> Bool
+pub fn Sf2Error::not_equal(Self, Self) -> Bool
+pub fn Sf2Error::output(Self, &Logger) -> Unit
+pub fn Sf2Error::to_repr(Self) -> @debug.Repr
+pub fn Sf2Error::to_string(Self) -> String
+pub impl Show for Sf2Error
+
+// Types and methods
+#derive(Eq, @debug.Debug)
+pub(all) struct Instrument {
+  name : String
+  global_zone : Zone?
+  zones : Array[Zone]
+}
+pub fn Instrument::equal(Self, Self) -> Bool
+pub fn Instrument::not_equal(Self, Self) -> Bool
+pub fn Instrument::to_repr(Self) -> @debug.Repr
+
+#derive(Eq, @debug.Debug)
+pub(all) enum LoopMode {
+  NoLoop
+  LoopContinuous
+  LoopUntilRelease
+}
+pub fn LoopMode::equal(Self, Self) -> Bool
+pub fn LoopMode::from_int(Int32) -> Self
+pub fn LoopMode::not_equal(Self, Self) -> Bool
+pub fn LoopMode::to_repr(Self) -> @debug.Repr
+
+#derive(Eq, @debug.Debug)
+pub(all) struct Modulator {
+  src_oper : Int32
+  dest_oper : Int32
+  amount : Int32
+  amt_src_oper : Int32
+  trans_oper : Int32
+}
+pub fn Modulator::equal(Self, Self) -> Bool
+pub fn Modulator::not_equal(Self, Self) -> Bool
+pub fn Modulator::to_repr(Self) -> @debug.Repr
+
+#derive(Eq, @debug.Debug)
+pub(all) struct Preset {
+  name : String
+  preset : Int32
+  bank : Int32
+  library : Int32
+  genre : Int32
+  morphology : Int32
+  global_zone : Zone?
+  zones : Array[Zone]
+}
+pub fn Preset::equal(Self, Self) -> Bool
+pub fn Preset::not_equal(Self, Self) -> Bool
+pub fn Preset::to_repr(Self) -> @debug.Repr
+
+#derive(Eq, @debug.Debug)
+pub(all) struct RawGenerator {
+  oper : Int32
+  amount : Int32
+}
+pub fn RawGenerator::equal(Self, Self) -> Bool
+pub fn RawGenerator::not_equal(Self, Self) -> Bool
+pub fn RawGenerator::range_high(Self) -> Int32
+pub fn RawGenerator::range_low(Self) -> Int32
+pub fn RawGenerator::signed(Self) -> Int32
+pub fn RawGenerator::to_repr(Self) -> @debug.Repr
+
+#derive(Eq, @debug.Debug)
+pub(all) struct SampleHeader {
+  name : String
+  start : Int32
+  end : Int32
+  start_loop : Int32
+  end_loop : Int32
+  sample_rate : Int32
+  original_pitch : Int32
+  pitch_correction : Int32
+  sample_link : Int32
+  sample_type : SampleType
+}
+pub fn SampleHeader::equal(Self, Self) -> Bool
+pub fn SampleHeader::not_equal(Self, Self) -> Bool
+pub fn SampleHeader::to_repr(Self) -> @debug.Repr
+
+#derive(Eq, @debug.Debug)
+pub(all) enum SampleType {
+  Mono
+  Right
+  Left
+  Linked
+  RomMono
+  RomRight
+  RomLeft
+  RomLinked
+  Unknown(Int32)
+}
+pub fn SampleType::equal(Self, Self) -> Bool
+pub fn SampleType::from_raw(Int32) -> Self
+pub fn SampleType::not_equal(Self, Self) -> Bool
+pub fn SampleType::to_raw(Self) -> Int32
+pub fn SampleType::to_repr(Self) -> @debug.Repr
+
+pub struct Sf2Builder {
+  bank_name : String
+  sound_engine : String
+  author : String
+  sample_data : Array[Int32]
+  sample_headers : Array[SampleHeader]
+  instruments : Array[Instrument]
+  presets : Array[Preset]
+}
+pub fn Sf2Builder::add_instrument(Self, String, Array[Zone], global_zone? : Zone?) -> Int32
+pub fn Sf2Builder::add_preset(Self, String, Int32, Int32, Array[Zone], global_zone? : Zone?) -> Unit
+pub fn Sf2Builder::add_sample(Self, String, Array[Int32], Int32, Int32, loop_start? : Int32, loop_end? : Int32, pitch_correction? : Int32) -> Int32
+pub fn Sf2Builder::build(Self) -> Bytes
+pub fn Sf2Builder::new(bank_name? : String) -> Self
+
+pub struct SoundFont {
+  info : SoundFontInfo
+  samples : FixedArray[Double]
+  sample_headers : Array[SampleHeader]
+  instruments : Array[Instrument]
+  presets : Array[Preset]
+}
+pub fn SoundFont::find_preset(Self, Int32, Int32, fallback_bank0? : Bool) -> Preset?
+pub fn SoundFont::resolve_preset_regions(Self, Preset) -> Array[ZoneRegion]
+
+#derive(Eq, @debug.Debug)
+pub(all) struct SoundFontInfo {
+  version : SoundFontVersion
+  sound_engine : String
+  bank_name : String
+  rom_name : String
+  rom_version : SoundFontVersion?
+  creation_date : String
+  author : String
+  target_product : String
+  copyright : String
+  comments : String
+  tools : String
+}
+pub fn SoundFontInfo::default() -> Self
+pub fn SoundFontInfo::equal(Self, Self) -> Bool
+pub fn SoundFontInfo::not_equal(Self, Self) -> Bool
+pub fn SoundFontInfo::to_repr(Self) -> @debug.Repr
+
+#derive(Eq, @debug.Debug)
+pub(all) struct SoundFontVersion {
+  major : Int32
+  minor : Int32
+}
+pub fn SoundFontVersion::equal(Self, Self) -> Bool
+pub fn SoundFontVersion::not_equal(Self, Self) -> Bool
+pub fn SoundFontVersion::to_repr(Self) -> @debug.Repr
+
+#derive(Eq, @debug.Debug)
+pub(all) struct Zone {
+  generators : Array[RawGenerator]
+  modulators : Array[Modulator]
+}
+pub fn Zone::equal(Self, Self) -> Bool
+pub fn Zone::not_equal(Self, Self) -> Bool
+pub fn Zone::to_repr(Self) -> @debug.Repr
+
+#derive(Eq, @debug.Debug)
+pub(all) struct ZoneRegion {
+  key_low : Int32
+  key_high : Int32
+  vel_low : Int32
+  vel_high : Int32
+  sample_index : Int32
+  start_offset : Int32
+  end_offset : Int32
+  start_loop_offset : Int32
+  end_loop_offset : Int32
+  mod_lfo_to_pitch : Int32
+  vib_lfo_to_pitch : Int32
+  mod_env_to_pitch : Int32
+  initial_filter_fc : Int32
+  initial_filter_q : Int32
+  mod_lfo_to_filter_fc : Int32
+  mod_env_to_filter_fc : Int32
+  mod_lfo_to_volume : Int32
+  chorus_send : Int32
+  reverb_send : Int32
+  pan : Int32
+  delay_mod_lfo : Int32
+  freq_mod_lfo : Int32
+  delay_vib_lfo : Int32
+  freq_vib_lfo : Int32
+  delay_mod_env : Int32
+  attack_mod_env : Int32
+  hold_mod_env : Int32
+  decay_mod_env : Int32
+  sustain_mod_env : Int32
+  release_mod_env : Int32
+  keynum_to_mod_env_hold : Int32
+  keynum_to_mod_env_decay : Int32
+  delay_vol_env : Int32
+  attack_vol_env : Int32
+  hold_vol_env : Int32
+  decay_vol_env : Int32
+  sustain_vol_env : Int32
+  release_vol_env : Int32
+  keynum_to_vol_env_hold : Int32
+  keynum_to_vol_env_decay : Int32
+  keynum_override : Int32
+  velocity_override : Int32
+  initial_attenuation : Int32
+  coarse_tune : Int32
+  fine_tune : Int32
+  sample_modes : LoopMode
+  scale_tuning : Int32
+  exclusive_class : Int32
+  overriding_root_key : Int32
+}
+pub fn ZoneRegion::equal(Self, Self) -> Bool
+pub fn ZoneRegion::matches(Self, Int32, Int32) -> Bool
+pub fn ZoneRegion::not_equal(Self, Self) -> Bool
+pub fn ZoneRegion::to_repr(Self) -> @debug.Repr
+
+// Type aliases
+
+// Traits
