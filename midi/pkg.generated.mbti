@@ -1,0 +1,86 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "xiguaAp6y3/moon_sf2/midi"
+
+import {
+  "moonbitlang/core/debug",
+  "xiguaAp6y3/moon_sf2/riff",
+  "xiguaAp6y3/moon_sf2/synth",
+}
+
+// Values
+pub fn parse_midi(Bytes) -> MidiFile raise MidiError
+
+// Errors
+#derive(Eq, @debug.Debug)
+pub(all) suberror MidiError {
+  Riff(err~ : @riff.RiffError)
+  InvalidHeader(expected~ : String, actual~ : String)
+  UnsupportedDivision(raw~ : Int32)
+  InvalidRunningStatus(offset~ : Int32)
+  InvalidVlq(offset~ : Int32)
+}
+pub fn MidiError::equal(Self, Self) -> Bool
+pub fn MidiError::not_equal(Self, Self) -> Bool
+pub fn MidiError::output(Self, &Logger) -> Unit
+pub fn MidiError::to_repr(Self) -> @debug.Repr
+pub fn MidiError::to_string(Self) -> String
+pub impl Show for MidiError
+
+// Types and methods
+pub struct MidiBuilder {
+  resolution : Int32
+  events : Array[TimedMidiEvent]
+}
+pub fn MidiBuilder::add_note(Self, Int32, Int32, Int32, Int32, Int32) -> Unit
+pub fn MidiBuilder::add_program_change(Self, Int32, Int32, Int32) -> Unit
+pub fn MidiBuilder::add_tempo(Self, Int32, Int32) -> Unit
+pub fn MidiBuilder::build(Self) -> Bytes
+pub fn MidiBuilder::new(resolution? : Int32) -> Self
+
+pub struct MidiFile {
+  format : Int32
+  track_count : Int32
+  resolution : Int32
+  events : Array[TimedMidiEvent]
+  duration_seconds : Double
+}
+
+#derive(Eq, @debug.Debug)
+pub(all) enum MidiMessageKind {
+  ChannelEvent(channel~ : Int32, command~ : Int32, data1~ : Int32, data2~ : Int32)
+  Tempo(microseconds_per_quarter~ : Int32)
+  EndOfTrack
+  Meta(meta_type~ : Int32)
+  SysEx
+}
+pub fn MidiMessageKind::equal(Self, Self) -> Bool
+pub fn MidiMessageKind::not_equal(Self, Self) -> Bool
+pub fn MidiMessageKind::to_repr(Self) -> @debug.Repr
+
+pub struct MidiSequencer {
+  synthesizer : @synth.Synthesizer
+  midi : MidiFile
+  mut loop_playback : Bool
+  mut event_index : Int32
+  mut current_time_sec : Double
+  mut next_event_time_sec : Double
+  mut us_per_quarter : Int32
+  mut last_event_tick : Int32
+}
+pub fn MidiSequencer::is_finished(Self) -> Bool
+pub fn MidiSequencer::new(@synth.Synthesizer, MidiFile, loop_playback? : Bool) -> Self
+pub fn MidiSequencer::render(Self, FixedArray[Double], FixedArray[Double], Int32) -> Unit
+pub fn MidiSequencer::set_loop(Self, Bool) -> Unit
+
+#derive(Eq, @debug.Debug)
+pub(all) struct TimedMidiEvent {
+  tick : Int32
+  kind : MidiMessageKind
+}
+pub fn TimedMidiEvent::equal(Self, Self) -> Bool
+pub fn TimedMidiEvent::not_equal(Self, Self) -> Bool
+pub fn TimedMidiEvent::to_repr(Self) -> @debug.Repr
+
+// Type aliases
+
+// Traits
