@@ -1,0 +1,54 @@
+# MoonBit build & cache artifacts
+.DS_Store
+_build/
+target/
+target
+.mooncakes/
+.moonagent/
+.repos/
+profile.json
+*.trace
+
+# Research notes, drafts & downloaded external fixtures (ignored from git)
+research/
+docs/research/
+references/
+notes/
+scratch/
+third_party_refs/
+*.local.md
+PROPOSAL*.draft.md
+*.sf2
+*.sf3
+*.mid
+*.midi
+*.wav
+*.mp3
+*.ogg
+*.flac
+
+# Secrets, keys, tokens & local environment files
+.env
+.env.*
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.jks
+*.token
+*secret*
+*secrets*
+*credential*
+*.secrets.json
+config.local.*
+
+# Editor & OS temporary files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.bak
+*.tmp
+Thumbs.db
+desktop.ini
