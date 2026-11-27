@@ -1,0 +1,10 @@
+import {
+  "xiguaAp6y3/moon_sf2/riff",
+  "xiguaAp6y3/moon_sf2/sf2",
+  "xiguaAp6y3/moon_sf2/synth",
+  "xiguaAp6y3/moon_sf2/midi",
+}
+
+import {
+  "moonbitlang/core/math",
+} for "test"

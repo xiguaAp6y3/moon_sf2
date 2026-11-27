@@ -1,0 +1,30 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "xiguaAp6y3/moon_sf2"
+
+import {
+  "xiguaAp6y3/moon_sf2/midi",
+  "xiguaAp6y3/moon_sf2/riff",
+  "xiguaAp6y3/moon_sf2/sf2",
+  "xiguaAp6y3/moon_sf2/synth",
+}
+
+// Values
+pub fn encode_wav_pcm16(FixedArray[Double], FixedArray[Double], Int32, Int32) -> Bytes
+
+pub fn inspect_riff(Bytes) -> @riff.RiffChunk raise @riff.RiffError
+
+pub fn new_synthesizer(@sf2.SoundFont, sample_rate? : Int32, maximum_polyphony? : Int32, enable_effects? : Bool, master_volume? : Double) -> @synth.Synthesizer
+
+pub fn parse_midi(Bytes) -> @midi.MidiFile raise @midi.MidiError
+
+pub fn parse_sf2(Bytes) -> @sf2.SoundFont raise @sf2.Sf2Error
+
+pub fn render_midi_to_wav(Bytes, Bytes, sample_rate? : Int32, tail_seconds? : Double, enable_effects? : Bool) -> Bytes raise
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
