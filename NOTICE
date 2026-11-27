@@ -1,0 +1,31 @@
+moon_sf2 (xiguaAp6y3/moon_sf2)
+Copyright 2026 xiguaAp6y3
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+================================================================================
+Third-Party Design References & Attributions
+================================================================================
+
+moon_sf2 is a clean-room, pure MoonBit implementation with zero C FFI
+dependencies. Its SoundFont2 synthesizer architecture, generator/envelope/LFO/
+modulator semantics, and stereo effect algorithms draw architectural inspiration
+from the following open-source projects:
+
+1. sinshu/rustysynth
+   Repository: https://github.com/sinshu/rustysynth
+   License: MIT License
+
+2. schellingb/TinySoundFont
+   Repository: https://github.com/schellingb/TinySoundFont
+   License: MIT License

@@ -1,6 +1,40 @@
 # moon_sf2
 
-Pure MoonBit **SoundFont2 (SF2)** wavetable bank parser and **General MIDI** polyphonic software synthesizer with zero C FFI dependencies. Designed for Native, Wasm, Wasm-GC, and JS targets.
+Pure MoonBit **SoundFont2 (SF2)** wavetable bank parser and **General MIDI** polyphonic software synthesizer with zero C FFI dependencies. Designed for `wasm`, `wasm-gc`, `js`, and `native` targets.
+
+## Project Goal
+
+`moon_sf2` provides a self-contained, memory-safe, zero-FFI audio synthesis pipeline in pure MoonBit—covering RIFF/SF2 binary parsing and authoring, SoundFont2 voice/envelope/filter/modulator DSP, stereo Reverb & Chorus effects, Standard MIDI File (SMF) parsing and sample-accurate sequencing, and 16-bit PCM WAV export.
+
+## Installation
+
+Add the module to your MoonBit project via `mooncakes.io`:
+
+```bash
+moon add xiguaAp6y3/moon_sf2
+```
+
+Then import the packages you need in your `moon.pkg`:
+
+```text
+import {
+  "xiguaAp6y3/moon_sf2",
+  "xiguaAp6y3/moon_sf2/sf2",
+  "xiguaAp6y3/moon_sf2/synth",
+  "xiguaAp6y3/moon_sf2/midi",
+}
+```
+
+## Package Architecture
+
+| Package | Responsibility |
+| --- | --- |
+| `xiguaAp6y3/moon_sf2` | High-level facade (`parse_sf2`, `parse_midi`, `new_synthesizer`, `render_midi_to_wav`, `encode_wav_pcm16`, `inspect_riff`) |
+| `xiguaAp6y3/moon_sf2/riff` | Bounds-checked `ByteReader` and recursive word-aligned `RIFF` / `LIST` container parser |
+| `xiguaAp6y3/moon_sf2/sf2` | SoundFont 2.01 & 2.04 parser (`INFO`, `sdta` `smpl`/`sm24`, 9-table `pdta` Hydra), zone inheritance, and `Sf2Builder` |
+| `xiguaAp6y3/moon_sf2/synth` | Polyphonic wavetable `Synthesizer`, DAHDSR envelopes, dual LFOs, Biquad low-pass filter, modulators, stereo Reverb/Chorus, WAV encoder |
+| `xiguaAp6y3/moon_sf2/midi` | Standard MIDI File (Format 0/1/2) parser, sample-accurate `MidiSequencer`, and `MidiBuilder` |
+| `xiguaAp6y3/moon_sf2/cmd/main` | Self-contained runnable demo generating an in-memory SF2 bank, C-major MIDI arpeggio, and stereo WAV |
 
 ## Features
 
@@ -12,13 +46,17 @@ Pure MoonBit **SoundFont2 (SF2)** wavetable bank parser and **General MIDI** pol
 - **Polyphonic SoundFont2 & General MIDI Synthesizer** (`xiguaAp6y3/moon_sf2/synth`)
   - DAHDSR Volume & Modulation envelopes, dual delayed LFOs (Modulation & Vibrato), resonant 2nd-order Biquad low-pass filter
   - 16 MIDI channels (including Bank/Program selection, percussion Channel 9 bank 128, CC#1/7/10/11/64/91/93/120/121/123, 14-bit Pitch Bend, RPN Pitch Bend Sensitivity)
-  - Continuous & until-release sample looping with linear interpolation, polyphony voice stealing, and exclusive class cutoff
+  - Continuous & until-release sample looping with linear and cubic Catmull-Rom interpolation, polyphony voice stealing, and exclusive class cutoff
   - Built-in Stereo Schroeder/Freeverb Reverb and modulated delay-line Chorus
 - **Standard MIDI File (SMF) Parser & Sample-Accurate Sequencer** (`xiguaAp6y3/moon_sf2/midi`)
   - Format 0/1/2 track parsing with VLQ delta-times, Running Status, Tempo meta events, and `MidiBuilder`
   - Built-in 16-bit PCM RIFF/WAV encoder
 
-## Quick Example
+## Usage & Runnable Example
+
+### 1. Build an SF2 + MIDI In-Memory and Render WAV
+
+The snippet below is an executable `mbt check` test verified by `moon test`:
 
 ```mbt check
 ///|
@@ -58,18 +96,49 @@ test "build minimal sf2 and synthesize" {
 }
 ```
 
-## Build, Test & Run
+### 2. Real-Time Note Triggering & Streaming Render
+
+```moonbit no-check
+let sf = @moon_sf2.parse_sf2(sf2_bytes)
+let syn = @moon_sf2.new_synthesizer(sf, sample_rate=44100)
+syn.note_on(0, 60, 100)
+
+let frames = 2048
+let left = FixedArray::make(frames, 0.0)
+let right = FixedArray::make(frames, 0.0)
+syn.render(left, right, frames)
+syn.note_off(0, 60)
+
+let wav_bytes = @moon_sf2.encode_wav_pcm16(left, right, frames, 44100)
+```
+
+## Reproducible Build, Test & Run
+
+Requires a MoonBit toolchain with `moonc >= 1.0.0-rc1` (check with `moon version --all`):
 
 ```bash
+moon update
 moon check --deny-warn --target all
-moon test --deny-warn
+moon build --deny-warn --target all
+moon test --deny-warn --target all
 moon run cmd/main
+moon fmt --check
+moon info
+```
+
+Running the built-in CLI demo (`moon run cmd/main`) prints:
+
+```text
+moon_sf2 demo rendered successfully!
+SF2 bytes: 784
+MIDI bytes: 72
+WAV bytes: 273464 (container=RIFF)
 ```
 
 ## Reference & Attribution
 
-The synthesizer architecture, SF2 generator/envelope semantics, and stereo effect design are inspired by:
+The synthesizer architecture, SF2 generator/envelope/modulator semantics, and stereo effect design are inspired by:
 - [sinshu/rustysynth](https://github.com/sinshu/rustysynth) (MIT License)
 - [schellingb/TinySoundFont](https://github.com/schellingb/TinySoundFont) (MIT License)
 
-Licensed under the [Apache-2.0 License](LICENSE).
+See [NOTICE](NOTICE) for third-party attributions and [LICENSE](LICENSE) for the full Apache-2.0 License.
