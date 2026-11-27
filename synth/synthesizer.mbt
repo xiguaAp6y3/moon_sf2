@@ -7,6 +7,7 @@ pub(all) struct SynthSettings {
   maximum_polyphony : Int32
   enable_reverb_and_chorus : Bool
   master_volume : Double
+  interpolation : InterpolationMode
 }
 
 ///|
@@ -16,13 +17,17 @@ pub extend SynthSettings with Eq::{equal, not_equal}
 pub extend SynthSettings with @debug.Debug::{to_repr}
 
 ///|
-pub fn SynthSettings::default(sample_rate~ : Int32 = 44100) -> SynthSettings {
+pub fn SynthSettings::default(
+  sample_rate~ : Int32 = 44100,
+  interpolation~ : InterpolationMode = Cubic,
+) -> SynthSettings {
   {
     sample_rate: clamp_int(sample_rate, 8000, 192000),
     block_size: 64,
     maximum_polyphony: 64,
     enable_reverb_and_chorus: true,
     master_volume: 0.5,
+    interpolation,
   }
 }
 
@@ -330,6 +335,7 @@ fn Synthesizer::render_block(self : Synthesizer) -> Unit {
           self.cho_in_r,
           bs,
           self.settings.enable_reverb_and_chorus,
+          interpolation=self.settings.interpolation,
         ),
       )
     }

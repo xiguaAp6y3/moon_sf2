@@ -134,6 +134,15 @@ pub fn EnvelopeStage::equal(Self, Self) -> Bool
 pub fn EnvelopeStage::not_equal(Self, Self) -> Bool
 pub fn EnvelopeStage::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
+pub(all) enum InterpolationMode {
+  Linear
+  Cubic
+}
+pub fn InterpolationMode::equal(Self, Self) -> Bool
+pub fn InterpolationMode::not_equal(Self, Self) -> Bool
+pub fn InterpolationMode::to_repr(Self) -> @debug.Repr
+
 pub struct Lfo {
   sample_rate : Int32
   mut active : Bool
@@ -189,8 +198,9 @@ pub(all) struct SynthSettings {
   maximum_polyphony : Int32
   enable_reverb_and_chorus : Bool
   master_volume : Double
+  interpolation : InterpolationMode
 }
-pub fn SynthSettings::default(sample_rate? : Int32) -> Self
+pub fn SynthSettings::default(sample_rate? : Int32, interpolation? : InterpolationMode) -> Self
 pub fn SynthSettings::equal(Self, Self) -> Bool
 pub fn SynthSettings::not_equal(Self, Self) -> Bool
 pub fn SynthSettings::to_repr(Self) -> @debug.Repr
@@ -270,7 +280,7 @@ pub fn Voice::end_note(Self, Bool) -> Unit
 pub fn Voice::kill(Self) -> Unit
 pub fn Voice::new(Int32, Int32) -> Self
 pub fn Voice::priority(Self) -> Double
-pub fn Voice::process(Self, FixedArray[Double], ChannelState, FixedArray[Double], FixedArray[Double], FixedArray[Double], FixedArray[Double], FixedArray[Double], FixedArray[Double], Int32, Bool) -> Bool
+pub fn Voice::process(Self, FixedArray[Double], ChannelState, FixedArray[Double], FixedArray[Double], FixedArray[Double], FixedArray[Double], FixedArray[Double], FixedArray[Double], Int32, Bool, interpolation? : InterpolationMode) -> Bool
 pub fn Voice::release_hold(Self) -> Unit
 pub fn Voice::start(Self, FixedArray[Double], Array[@sf2.SampleHeader], @sf2.ZoneRegion, Int32, Int32, Int32) -> Unit
 

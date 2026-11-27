@@ -1,4 +1,18 @@
 ///|
+/// Sample resampling interpolation algorithm.
+#derive(Debug, Eq)
+pub(all) enum InterpolationMode {
+  Linear
+  Cubic
+}
+
+///|
+pub extend InterpolationMode with Eq::{equal, not_equal}
+
+///|
+pub extend InterpolationMode with @debug.Debug::{to_repr}
+
+///|
 /// Lifecycle state of an active polyphonic voice.
 #derive(Debug, Eq)
 pub(all) enum VoiceState {
@@ -267,11 +281,31 @@ pub fn Voice::priority(self : Voice) -> Double {
 }
 
 ///|
+fn catmull_rom(
+  p0 : Double,
+  p1 : Double,
+  p2 : Double,
+  p3 : Double,
+  t : Double,
+) -> Double {
+  let t2 = t * t
+  let t3 = t2 * t
+  0.5 *
+  (
+    2.0 * p1 +
+    (-p0 + p2) * t +
+    (2.0 * p0 - 5.0 * p1 + 4.0 * p2 - p3) * t2 +
+    (-p0 + 3.0 * p1 - 3.0 * p2 + p3) * t3
+  )
+}
+
+///|
 fn Voice::fill_samples(
   self : Voice,
   samples : FixedArray[Double],
   pitch_ratio : Double,
   count : Int32,
+  interpolation : InterpolationMode,
 ) -> Bool {
   let is_looping = match self.loop_mode {
     LoopContinuous => self.loop_end > self.loop_start
@@ -279,7 +313,8 @@ fn Voice::fill_samples(
       self.state != Released && self.loop_end > self.loop_start
     NoLoop => false
   }
-  let loop_len = (self.loop_end - self.loop_start).to_double()
+  let loop_len_int = self.loop_end - self.loop_start
+  let loop_len = loop_len_int.to_double()
   let mut t = 0
   while t < count {
     if is_looping {
@@ -287,15 +322,32 @@ fn Voice::fill_samples(
         self.sample_pos = self.sample_pos - loop_len
       }
       let idx1 = self.sample_pos.to_int()
-      let idx2 = if idx1 + 1 >= self.loop_end {
-        self.loop_start
-      } else {
-        idx1 + 1
-      }
       let frac = self.sample_pos - idx1.to_double()
-      let s1 = samples[idx1]
-      let s2 = samples[idx2]
-      self.block[t] = s1 + frac * (s2 - s1)
+      match interpolation {
+        Linear => {
+          let idx2 = if idx1 + 1 >= self.loop_end {
+            self.loop_start
+          } else {
+            idx1 + 1
+          }
+          let s1 = samples[idx1]
+          let s2 = samples[idx2]
+          self.block[t] = s1 + frac * (s2 - s1)
+        }
+        Cubic => {
+          let rel = idx1 - self.loop_start
+          let idx0 = self.loop_start + (rel - 1 + loop_len_int) % loop_len_int
+          let idx2 = self.loop_start + (rel + 1) % loop_len_int
+          let idx3 = self.loop_start + (rel + 2) % loop_len_int
+          self.block[t] = catmull_rom(
+            samples[idx0],
+            samples[idx1],
+            samples[idx2],
+            samples[idx3],
+            frac,
+          )
+        }
+      }
       self.sample_pos = self.sample_pos + pitch_ratio
     } else {
       if self.sample_pos >= (self.sample_end - 1).to_double() {
@@ -306,9 +358,25 @@ fn Voice::fill_samples(
       }
       let idx1 = self.sample_pos.to_int()
       let frac = self.sample_pos - idx1.to_double()
-      let s1 = samples[idx1]
-      let s2 = samples[idx1 + 1]
-      self.block[t] = s1 + frac * (s2 - s1)
+      match interpolation {
+        Linear => {
+          let s1 = samples[idx1]
+          let s2 = samples[idx1 + 1]
+          self.block[t] = s1 + frac * (s2 - s1)
+        }
+        Cubic => {
+          let idx0 = if idx1 > self.sample_start { idx1 - 1 } else { idx1 }
+          let idx2 = idx1 + 1
+          let idx3 = if idx1 + 2 < self.sample_end { idx1 + 2 } else { idx2 }
+          self.block[t] = catmull_rom(
+            samples[idx0],
+            samples[idx1],
+            samples[idx2],
+            samples[idx3],
+            frac,
+          )
+        }
+      }
       self.sample_pos = self.sample_pos + pitch_ratio
     }
     t += 1
@@ -331,6 +399,7 @@ pub fn Voice::process(
   cho_r : FixedArray[Double],
   count : Int32,
   enable_effects : Bool,
+  interpolation~ : InterpolationMode = Linear,
 ) -> Bool {
   if self.state == Finished {
     return false
@@ -358,7 +427,9 @@ pub fn Voice::process(
   let pitch_ratio = cents_to_multiplying_factor(pitch_cents) *
     (self.sample_rate_src.to_double() / self.sample_rate.to_double())
 
-  let has_more_audio = self.fill_samples(samples, pitch_ratio, count)
+  let has_more_audio = self.fill_samples(
+    samples, pitch_ratio, count, interpolation,
+  )
 
   // Dynamic resonant low-pass filter update
   let fc_cents = clamp(

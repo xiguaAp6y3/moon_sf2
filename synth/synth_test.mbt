@@ -119,3 +119,63 @@ test "Synthesizer polyphonic note rendering, sustain pedal, and WAV export" {
   let wav = @synth.encode_wav_pcm16(left, right, 256, 44100)
   inspect(wav.length(), content="1068")
 }
+
+///|
+test "exclusive class chokes prior note and polyphony cap steals voices" {
+  let sb = @sf2.Sf2Builder::new(bank_name="Drum Choke Bank")
+  let pcm : Array[Int32] = []
+  for i in 0..<100 {
+    let angle = 2.0 * @math.PI * i.to_double() / 100.0
+    pcm.push((@math.sin(angle) * 20000.0).to_int())
+  }
+  let smp = sb.add_sample("Hat", pcm, 44100, 60, loop_start=0, loop_end=100)
+  let inst = sb.add_instrument("HatKit", [
+    {
+      generators: [
+        @sf2.gen_range(@sf2.GEN_KEY_RANGE, 42, 46),
+        @sf2.gen_range(@sf2.GEN_VEL_RANGE, 0, 127),
+        @sf2.gen_val(@sf2.GEN_SAMPLE_MODES, 1),
+        @sf2.gen_val(@sf2.GEN_EXCLUSIVE_CLASS, 1),
+        @sf2.gen_val(@sf2.GEN_SAMPLE_ID, smp),
+      ],
+      modulators: [],
+    },
+    {
+      generators: [
+        @sf2.gen_range(@sf2.GEN_KEY_RANGE, 60, 72),
+        @sf2.gen_range(@sf2.GEN_VEL_RANGE, 0, 127),
+        @sf2.gen_val(@sf2.GEN_SAMPLE_MODES, 1),
+        @sf2.gen_val(@sf2.GEN_SAMPLE_ID, smp),
+      ],
+      modulators: [],
+    },
+  ])
+  sb.add_preset("Kit", 0, 0, [
+    {
+      generators: [
+        @sf2.gen_range(@sf2.GEN_KEY_RANGE, 0, 127),
+        @sf2.gen_val(@sf2.GEN_INSTRUMENT, inst),
+      ],
+      modulators: [],
+    },
+  ])
+  let sf = @sf2.parse_sf2(sb.build())
+  let settings : @synth.SynthSettings = {
+    sample_rate: 44100,
+    block_size: 64,
+    maximum_polyphony: 2,
+    enable_reverb_and_chorus: false,
+    master_volume: 0.5,
+    interpolation: Linear,
+  }
+  let syn = @synth.Synthesizer::new(sf, settings~)
+  // Exclusive class 1: key 42 chokes key 46 immediately, keeping active voices = 1
+  syn.note_on(0, 46, 100)
+  inspect(syn.active_voice_count(), content="1")
+  syn.note_on(0, 42, 100)
+  inspect(syn.active_voice_count(), content="1")
+  // Polyphony cap of 2 steals oldest/lowest-priority voice when triggering 3rd voice
+  syn.note_on(0, 60, 100)
+  syn.note_on(0, 64, 100)
+  inspect(syn.active_voice_count(), content="2")
+}

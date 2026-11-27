@@ -25,6 +25,7 @@ pub fn new_synthesizer(
     maximum_polyphony,
     enable_reverb_and_chorus: enable_effects,
     master_volume,
+    interpolation: Cubic,
   }
   @synth.Synthesizer::new(sound_font, settings~)
 }
